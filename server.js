@@ -1,43 +1,46 @@
 require('dotenv').config()
-
-const express = require('express');
+const express = require('express')
 const cors = require('cors');
-const cookieParser = require('cookie-parser');
-const assert = require('assert');
-const fileUpload = require('express-fileupload')
-const {StatusCodes} = require('http-status-codes');
+const cookieParser = require('cookie-parser')
+const assert = require('assert')
+const fileUpload = require('express-fileupload');
+const { StatusCodes} = require('http-status-codes')
+const connectDB = require('./db')
 
 // port
 const PORT = process.env.PORT
-
 // ref
-const app = express()
+const app = express();
 
 // body parser
-app.use(express.urlencoded({ extended: true }))
-app.use(express.json())
+ app.use(express.urlencoded({extended:true}))
+ app.use(express.json())
 
-// middlewares
-app.use(cors())
-app.use(cookieParser())
-app.use(fileUpload({
-    useTempFiles: true
-}))
-// route
-const authRoute = require('./route/authRoute')
-const userRoute = require('./route/userRoute')
+ //middleware
+ app.use(cors())
+ app.use(cookieParser(process.env.TOKEN_SECRET))  // add token only for  signed cookies
+ app.use(fileUpload({
+    useTempFiles:true
+ }))
 
-// primary route
-app.use(`/api/v1/auth`, authRoute)
-app.use(`/api/v1/user`, userRoute)
+ // route modules
+ const authRoute = require('./route/authRoute');
+ const userRoute = require('./route/userRoute');
 
-const start = async () => {
+
+// primary Router  "bcrypt": "^5.1.0",
+
+app.use(`/api/v1/auth`,authRoute)
+app.use(`/api/v1/user`,userRoute)
+
+const start = async ()=>{
     try {
-        app.listen(PORT, () => {
-            console.log(`server is running @ http://localhost:${PORT}`);
+        await connectDB();
+        app.listen(PORT, ()=>{
+            console.log(`server is listening at http://localhost:${PORT}`)
         })
     } catch (err) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: err.message })
+        return  resizeBy.status(StatusCodes.INTERNAL_SERVER_ERROR).json({msg:err.message})
     }
 }
 
